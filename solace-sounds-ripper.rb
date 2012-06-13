@@ -39,6 +39,10 @@ def main
 
   dirs_to_search.each do |dir|
     puts "Searching #{HOST}#{dir}"
+
+    # don't overwhelm the server
+    sleep 1
+
     subdir = Nokogiri::HTML(open(HOST + dir))
     streams_to_grab = subdir.css('a').map{|x|x[:href]}.grep(%r{\.mp3})
     streams_to_rip.concat(streams_to_grab)
