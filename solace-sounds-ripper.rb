@@ -12,7 +12,7 @@ require 'mp3info'
 # Path where we want the completed tracks to go. Probably the only thing
 # that should be tweaked.
 # Don't use a tilde here! Full path please.
-DESTINATION_DIR = "/home/wompoo/Music/SolaceSounds"
+DESTINATION_DIR = "/home/wompoo/Music/tetrabrick/SolaceSounds"
 
 HOST = "http://91.186.15.177"
 START_URI = "#{HOST}/SolaceSounds/"
