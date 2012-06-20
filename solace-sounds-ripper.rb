@@ -1,12 +1,13 @@
 require 'nokogiri'
 require 'open-uri'
 require 'mp3info'
+require 'cgi'
 
 # NOTE
 # install gems before running
 # nokogiri, mp3info
 
-# Usage: just run it. It will take days to download the whole set. You can 
+# Usage: just run it. It will take days to download the whole set. You can
 # kill the process at any point and it will start up where it left off.
 
 # Path where we want the completed tracks to go. Probably the only thing
@@ -50,7 +51,7 @@ def main
 
   # we've found all of the mp3 streams, now we grab them
   streams_to_rip.each do |url|
-    if stream_already_downloaded(url)      
+    if stream_already_downloaded(url)
       puts "skipping url: #{url}"
       next
     end
@@ -77,8 +78,25 @@ def stream_already_downloaded(url)
 end
 
 def stream_url_to_filepath(url)
-  volume_no = %r{.*(\d\d)\.mp3}.match(url)[1]
-  return "#{DESTINATION_DIR}/SolaceSounds#{volume_no}.mp3"
+  url = CGI::unescape(url)
+
+  # volume no at end of url
+  if match = %r{.*(\d\d)\.mp3}.match(url)
+    volume_no = match[1]
+    return "#{DESTINATION_DIR}/SolaceSounds#{volume_no}.mp3"
+  end
+
+  if match = %r{SolaceSounds *(\d\d) - (.+)\.mp3}.match(url)
+    volume_no, other_text = match[1,2]
+    other_text[' '] = '-'
+    return "#{DESTINATION_DIR}/SolaceSounds#{volume_no}-#{other_text}.mp3"
+  end
+
+  raise "could not deal with url: #{url}"
+end
+
+def url_to_trackname(url)
+  return File::basename(stream_url_to_filepath(url)).sub(/\.mp3$/, '')
 end
 
 def set_mp3_tags(url)
@@ -88,7 +106,7 @@ def set_mp3_tags(url)
   # gems and was not impressed by any of them.
   filename = stream_url_to_filepath(url)
   puts "Setting mp3 tags on #{filename} (sometimes takes a while)"
-  name = "Solace Sounds #" + /.*(\d\d)\.mp3/.match(filename)[1]
+  name = url_to_trackname(url)
   Mp3Info.open(filename) do |mp3|
     mp3.tag.title = name
     mp3.tag.album = name
